@@ -14,5 +14,6 @@ Walkthrough video: https://drive.google.com/file/d/1kjjvh7OASn8EHWXRfFpXmXlWy1gj
 ## Credits
 N/A
 ## License
-Please see the license section of the REPO.
+Please see the license section in the REPO.
+
 ---
