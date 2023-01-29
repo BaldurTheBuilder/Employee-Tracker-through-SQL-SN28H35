@@ -32,7 +32,13 @@ const mainPrompt = {
 const departmentPrompt = {
     type: 'input',
     name:'deptName',
-    message:`what's the name of the new department? `
+    message:`what's the name of the new department? `,
+    validate: (answer) => {
+        if(!answer) {
+            return `you haven't selected a department to add. Please make a selection.`;
+        }
+        else return true;
+    }
 };
 
 function mainMenu() {
@@ -110,8 +116,42 @@ async function addDepartment() {
     mainMenu();
 };
 
+// WHEN I choose to add a role I am prompted to enter the name, salary, and department for the role and that role is added to the database
 function addRole() {
+    let departmentsList = [];
+    db.query('SELECT * FROM department', function (err, results) {
+        departmentsList = results.map((dept => {
+            return {
+            value: dept.id,
+            name: dept.department_name
+            }
+        }));
 
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'title',
+                message: `What's the role's title? `
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: `What salary does the role pay? `
+            },
+            {
+                type: 'list',
+                name: 'department',
+                message: `What department does the role belong to?`,
+                choices: departmentsList
+            }
+        ])
+        .then ((values) => {
+            db.execute(`INSERT INTO role (title, salary, department_id) VALUES (?,?,?)`, [values.title, values.salary, values.department]);
+        })
+        .then (() => {
+            mainMenu();
+        });
+    });
 };
 
 function addEmployee() {
@@ -127,10 +167,6 @@ app.listen(PORT, () => {
 });
 
  mainMenu();
-
-
-// WHEN I choose to add a role I am prompted to enter the name, salary, and department for the role and that role is added to 
-//the database
 
 // WHEN I choose to add an employee I am prompted to enter the employee’s first name, last name, role, and manager, and that 
 //employee is added to the database
