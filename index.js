@@ -1,6 +1,7 @@
 const express = require('express');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
+require('console.table');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3001;
@@ -12,49 +13,47 @@ app.use(express.json());
 const db = mysql.createConnection(
     {
       host: 'localhost',
-      port: PORT,
-      user: 'root',
+      user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
-      database: 'company_db'
-    }
+      database: process.env.DB_NAME
+    },
+    console.log('connected to company_db.')
   );
 
 // WHEN I start the application I am presented with the following options: 
 // view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role
-const ourPrompt = {
+const mainPrompt = {
     type:'list',
     name:'choiceOfAction',
     message:'Please select what you would like to do: ',
     choices:['View all departments','View all roles','View all employees','Add a department','Add a role','Add an employee','Update employee role']
 };
 
-function runProgram() {
+function mainMenu() {
     return inquirer
-        .prompt(ourPrompt)
+        .prompt(mainPrompt)
         .then((data) => {
-            const userChoice = data.choiceOfAction;
-            console.log(`you selected: ${userChoice}`);
-            switch (userChoice) {
+            switch (data.choiceOfAction) {
                 case 'View all departments':
-                    console.log('1');
+                    viewDepartments();
                     break;
                 case 'View all roles':
-                    console.log('2');
+                    viewRoles();
                     break;
                 case 'View all employees':
-                    console.log('3');
+                    viewEmployees();
                     break;
                 case 'Add a department':
-                    console.log('4');
+                    addDepartment();
                     break;
                 case 'Add a role':
-                    console.log('5');
+                    addRole();
                     break;
                 case 'Add an employee':
-                    console.log('6');
+                    addEmployee();
                     break;
                 case 'Update employee role':
-                    console.log('7');
+                    updateEmployee();
                     break;
                 default:
                     console.log(`something really went wrong for you to read this.`);
@@ -63,21 +62,63 @@ function runProgram() {
         });
 };
 
+// WHEN I choose to view all departments I am presented with a formatted table showing department names and department ids
+function viewDepartments() {
+    db.query('SELECT * FROM department ORDER BY department.id', function (err, results) {
+        console.table(results);
+        mainMenu();
+    });
+};
 
+// WHEN I choose to view all roles I am presented with the job title, role id, the department that role belongs to, and the salary for that role
+function viewRoles() {
+    db.query(`SELECT role.id, role.title, department.department_name, role.salary FROM role 
+    JOIN department ON role.department_id = department.id
+    ORDER BY role.id`, function (err, results) {
+        console.table(results);
+        mainMenu();
+    });
+};
+
+// WHEN I choose to view all employees I am presented with a formatted table showing employee data, including employee ids,
+// first names, last names, job titles, departments, salaries, and managers that the employees report to
+function viewEmployees() {
+    db.query(`SELECT employees.id, CONCAT(employees.first_name, ' ', employees.last_name) AS employee_name, role.title, department.department_name, role.salary, 
+        CONCAT(manager.first_name, ' ', manager.last_name) AS manager_name FROM employees
+        LEFT JOIN employees manager on manager.id = employees.manager_id 
+        JOIN role ON employees.role_id = role.id
+        JOIN department ON role.department_id = department.id`, 
+        function (err, results) {
+            console.table(results);
+            mainMenu();
+        }
+    );
+};
+
+function addDepartment() {
+
+};
+
+function addRole() {
+
+};
+
+function addEmployee() {
+
+};
+
+function updateEmployee() {
+
+};
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
- runProgram();
+ mainMenu();
 
-// WHEN I choose to view all departments I am presented with a formatted table showing department names and department ids
 
-// WHEN I choose to view all roles I am presented with the job title, role id, the department that role belongs to, 
-//and the salary for that role
 
-// WHEN I choose to view all employees I am presented with a formatted table showing employee data, including employee ids,
-// first names, last names, job titles, departments, salaries, and managers that the employees report to
 
 // WHEN I choose to add a department I am prompted to enter the name of the department and that department is added to the database
 
