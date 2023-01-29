@@ -21,4 +21,4 @@ VALUES ("Walter","White",1,NULL),
        ("Marie","Schrader",4,4),
        ("Mike","Ehrmantraut",5,NULL),
        ("Gus","Fring",5,NULL),
-       ("Badger",NULL,6,NULL);
+       ("Badger","Da Greatest",6,NULL);
