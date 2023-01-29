@@ -29,6 +29,12 @@ const mainPrompt = {
     choices:['View all departments','View all roles','View all employees','Add a department','Add a role','Add an employee','Update employee role']
 };
 
+const departmentPrompt = {
+    type: 'input',
+    name:'deptName',
+    message:`what's the name of the new department? `
+};
+
 function mainMenu() {
     return inquirer
         .prompt(mainPrompt)
@@ -95,8 +101,13 @@ function viewEmployees() {
     );
 };
 
-function addDepartment() {
-
+// WHEN I choose to add a department I am prompted to enter the name of the department and that department is added to the database
+async function addDepartment() {
+    await inquirer.prompt(departmentPrompt)
+        .then(answers => {
+            db.query(`INSERT INTO department (department_name) VALUES (?)`, answers.deptName)}
+        );
+    mainMenu();
 };
 
 function addRole() {
@@ -117,10 +128,6 @@ app.listen(PORT, () => {
 
  mainMenu();
 
-
-
-
-// WHEN I choose to add a department I am prompted to enter the name of the department and that department is added to the database
 
 // WHEN I choose to add a role I am prompted to enter the name, salary, and department for the role and that role is added to 
 //the database
