@@ -111,8 +111,9 @@ function viewEmployees() {
 async function addDepartment() {
     await inquirer.prompt(departmentPrompt)
         .then(answers => {
-            db.query(`INSERT INTO department (department_name) VALUES (?)`, answers.deptName)}
-        );
+            db.query(`INSERT INTO department (department_name) VALUES (?)`, answers.deptName);
+            console.log(`Added ${answers.deptName} to the database.`);
+        });
     mainMenu();
 };
 
@@ -147,6 +148,7 @@ function addRole() {
         ])
         .then ((values) => {
             db.execute(`INSERT INTO role (title, salary, department_id) VALUES (?,?,?)`, [values.title, values.salary, values.department]);
+            console.log(`Added ${values.title} to the database.`);
         })
         .then (() => {
             mainMenu();
@@ -154,8 +156,61 @@ function addRole() {
     });
 };
 
+// WHEN I choose to add an employee I am prompted to enter the employee’s first name, last name, role, and manager, and that 
+//employee is added to the database
 function addEmployee() {
+    let roleList = [];
+    db.query('SELECT * FROM role', function (err, results) {
+        roleList = results.map((role => {
+            return {
+            value: role.id,
+            name: role.title
+            }
+        }));
 
+            let managerList = [];
+        db.query('SELECT * FROM employees', function (err, results) {
+            managerList = results.map((manager => {
+                return {
+                value: manager.id,
+                name: manager.first_name.concat(' ',manager.last_name)
+                }
+            }));
+            managerList.unshift({value: null, name: "No manager"});
+
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'first_name',
+                    message: `What's the employee's first name? `
+                },
+                {
+                    type: 'input',
+                    name: 'last_name',
+                    message: `What's the employee's last name? `
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: `What is the employee's role? `,
+                    choices: roleList
+                },
+                {
+                    type: 'list',
+                    name: 'manager',
+                    message: `Who is the employee's manager? `,
+                    choices: managerList
+                }
+            ])
+            .then ((values) => {
+                db.execute(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`, [values.first_name, values.last_name, values.role, values.manager]);
+                console.log(`added ${values.first_name.concat(' ',values.last_name)} to the database.`)
+            })
+            .then (() => {
+                mainMenu();
+            });
+        });
+    });
 };
 
 function updateEmployee() {
@@ -167,9 +222,6 @@ app.listen(PORT, () => {
 });
 
  mainMenu();
-
-// WHEN I choose to add an employee I am prompted to enter the employee’s first name, last name, role, and manager, and that 
-//employee is added to the database
 
 // WHEN I choose to update an employee role I am prompted to select an employee to update and their new role and this 
 //information is updated in the database 
