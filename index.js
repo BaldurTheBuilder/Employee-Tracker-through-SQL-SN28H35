@@ -204,7 +204,7 @@ function addEmployee() {
             ])
             .then ((values) => {
                 db.execute(`INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)`, [values.first_name, values.last_name, values.role, values.manager]);
-                console.log(`added ${values.first_name.concat(' ',values.last_name)} to the database.`)
+                console.log(`added ${values.first_name.concat(' ',values.last_name)} to the database.`);
             })
             .then (() => {
                 mainMenu();
@@ -213,8 +213,51 @@ function addEmployee() {
     });
 };
 
+// WHEN I choose to update an employee role I am prompted to select an employee to update and their new role and this 
+//information is updated in the database 
 function updateEmployee() {
+    let roleList = [];
+    db.query('SELECT * FROM role', function (err, results) {
+        roleList = results.map((role => {
+            return {
+            value: role.id,
+            name: role.title
+            }
+        }));
 
+        let employeeList = [];
+        db.query('SELECT * FROM employees', function (err, results) {
+            employeeList = results.map((person => {
+                return {
+                value: person.id,
+                name: person.first_name.concat(' ',person.last_name)
+                }
+            }));
+
+            inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'chosenEmployee',
+                    message: `Which employee do you want to update? `,
+                    choices: employeeList
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: `What is the employee's new role? `,
+                    choices: roleList
+                },
+
+            ])
+            .then ((chosenData) => {
+                db.execute(`UPDATE employees SET role_id = ? WHERE id = ? `, [chosenData.role, chosenData.chosenEmployee]);
+                console.log(`updated the role for ${employeeList[chosenData.chosenEmployee - 1].name} to ${roleList[chosenData.role - 1].name}`)
+            })
+            .then (() => {
+                mainMenu();
+            });
+        });
+    });
 };
 
 app.listen(PORT, () => {
@@ -223,5 +266,3 @@ app.listen(PORT, () => {
 
  mainMenu();
 
-// WHEN I choose to update an employee role I am prompted to select an employee to update and their new role and this 
-//information is updated in the database 
